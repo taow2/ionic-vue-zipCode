@@ -1,29 +1,59 @@
 <template>
-  <ion-page>
-    <ion-header :translucent="true">
+  <div class="ion-page">
+    <ion-header>
       <ion-toolbar>
-        <ion-title>Blank</ion-title>
+        <ion-title>ZipInfo</ion-title>
       </ion-toolbar>
     </ion-header>
-
-    <ion-content :fullscreen="true">
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">Blank</ion-title>
-        </ion-toolbar>
-      </ion-header>
-
-      <div id="container">
-        <strong>Ready to create an app?</strong>
-        <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-      </div>
+    <ion-content class="ion-padding">
+      <!-- get-zip is the name used in ZipSearch.vue -->
+      <zip-search v-on:get-zip="getZipInfo" />
+      <zip-info v-bind:info="info" />
+      <clear-info v-bind:info="info" v-on:clear-info="clearInfo" />
     </ion-content>
-  </ion-page>
+  </div>
 </template>
 
-<script setup lang="ts">
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
+<script setup>
+import { alertController, IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
+import ZipSearch from '../components/ZipSearch.vue';
+import ZipInfo from '../components/ZipInfo.vue';
+import ClearInfo from '../components/ClearInfo.vue';
 </script>
+
+<script>
+export default {
+  data() {
+    return {
+      info: null
+    };
+  },
+  methods: {
+    // zip is passed from $emit("get-zip", this.zip)
+    async getZipInfo(zip) {
+      const res = await fetch(`https://api.zippopotam.us/us/${zip}`);
+      if(res.status == 404) {
+        this.showAlert();
+      }
+      // info is the one in data(), it will store the data obtained from res
+      this.info = await res.json();
+    },
+    async showAlert() {
+      return await alertController
+        .create({
+          header: "Enter Zipcode",
+          message: "Please enter a valid US zipcode",
+          buttons: ["OK"]
+        })
+        .then(a => a.present());
+    },
+    clearInfo() {
+      this.info = null;
+    }
+  }
+}
+</script>
+
 
 <style scoped>
 #container {
